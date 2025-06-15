@@ -1,3 +1,4 @@
+// src/server.ts
 import app from './app';
 import dotenv from 'dotenv';
 

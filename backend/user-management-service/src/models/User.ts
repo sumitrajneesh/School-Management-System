@@ -1,8 +1,10 @@
+// src/models/User.ts
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 // Define the User document interface
 export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId;
   username: string;
   email: string;
   password?: string; // Optional because it won't be returned from queries
