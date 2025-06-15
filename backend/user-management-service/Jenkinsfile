@@ -1,0 +1,144 @@
+// Jenkinsfile for the User Management Service
+
+pipeline {
+    // Agent: Specifies where the pipeline will run.
+    // 'any' runs on any available agent.
+    // For specific environments (e.g., agents with Docker installed), use:
+    // agent { label 'your-docker-build-agent' }
+    agent any
+
+    // Environment variables for the pipeline
+    environment {
+        // --- Docker Registry Configuration ---
+        // Replace 'your_docker_registry_username' with your Docker Hub username
+        // or the full path to your private registry (e.g., 'registry.gitlab.com/your-org').
+        DOCKER_REGISTRY_USER = 'your_docker_registry_username'
+
+        // Name of the Docker image
+        DOCKER_IMAGE_NAME = 'user-management-service'
+
+        // Jenkins Credential ID for Docker Hub login.
+        // This should be a 'Username with password' credential configured in Jenkins.
+        // Username: Your Docker Hub username
+        // Password: Your Docker Hub password
+        DOCKER_HUB_CREDENTIAL_ID = 'docker-hub-credentials' // <-- Replace with your actual Jenkins Credential ID
+    }
+
+    // Stages define the logical steps of your pipeline
+    stages {
+        stage('1. Checkout Source Code') {
+            steps {
+                // Clones the Git repository.
+                // Replace 'https://github.com/your-org/your-repo.git' with your actual repository URL.
+                // 'main' is the default branch; adjust if needed.
+                git branch: 'main', url: 'https://github.com/your-org/your-repo.git'
+            }
+        }
+
+        stage('2. Install Node.js Dependencies') {
+            steps {
+                script {
+                    // Installs all dependencies listed in package.json
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('3. Build TypeScript Application') {
+            steps {
+                script {
+                    // Compiles TypeScript to JavaScript (outputs to 'dist' folder)
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('4. Run Tests') {
+            steps {
+                script {
+                    // Placeholder for running unit/integration tests.
+                    // Uncomment and replace with your actual test command when ready.
+                    // Example: sh 'npm test'
+                    echo 'Skipping tests for now. Implement your test command here.'
+                }
+            }
+        }
+
+        stage('5. Build Docker Image') {
+            steps {
+                script {
+                    // Defines the Docker image tag using the Jenkins BUILD_NUMBER for uniqueness
+                    def imageTag = "${env.DOCKER_REGISTRY_USER}/${env.DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
+                    // Builds the Docker image based on the Dockerfile in the current directory
+                    sh "docker build -t ${imageTag} ."
+                    echo "Docker Image built: ${imageTag}"
+                }
+            }
+        }
+
+        stage('6. Push Docker Image') {
+            steps {
+                script {
+                    // Logs into the Docker registry using Jenkins credentials securely
+                    withCredentials([usernamePassword(credentialsId: env.DOCKER_HUB_CREDENTIAL_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        // For Docker Hub, the registry is 'docker.io'
+                        sh "echo \"${DOCKER_PASSWORD}\" | docker login -u \"${DOCKER_USERNAME}\" --password-stdin docker.io"
+                        // If using a private registry (e.g., GitLab, GCR, ECR), replace 'docker.io' with its URL:
+                        // sh "echo \"${DOCKER_PASSWORD}\" | docker login -u \"${DOCKER_USERNAME}\" --password-stdin your-private-registry.com
+                    }
+                    def imageTag = "${env.DOCKER_REGISTRY_USER}/${env.DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
+                    // Pushes the built image to the Docker registry
+                    sh "docker push ${imageTag}"
+                    echo "Docker Image pushed: ${imageTag}"
+                }
+            }
+        }
+
+        stage('7. Deploy to Environment') {
+            steps {
+                script {
+                    // This stage contains placeholder deployment logic.
+                    // The actual commands will vary wildly based on your deployment target:
+                    // - Kubernetes: kubectl commands (e.g., kubectl apply -f deployment.yaml, kubectl set image)
+                    // - Docker Compose: ssh into server and run docker compose pull/up
+                    // - AWS ECS/EKS, Azure AKS, Google GKE: specific cloud provider CLI commands
+                    // - Bare Metal: ssh and run docker run/pull commands
+
+                    def imageTag = "${env.DOCKER_REGISTRY_USER}/${env.DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
+                    echo "Initiating deployment for image: ${imageTag}"
+                    echo "Add your specific deployment commands here."
+                    echo "Example for Kubernetes (requires kubectl context set up):"
+                    echo "  kubectl set image deployment/user-management-deployment user-management-container=${imageTag} --record"
+                    echo "  kubectl rollout status deployment/user-management-deployment"
+                }
+            }
+        }
+    }
+
+    // Post-build actions (run after all stages complete, regardless of success/failure)
+    post {
+        always {
+            // Optional: Clean up the Docker image from the Jenkins agent to save disk space
+            script {
+                try {
+                    def imageTag = "${env.DOCKER_REGISTRY_USER}/${env.DOCKER_IMAGE_NAME}:${env.BUILD_NUMBER}"
+                    sh "docker rmi ${imageTag}"
+                    echo "Cleaned up Docker image locally: ${imageTag}"
+                } catch (err) {
+                    echo "Failed to remove local Docker image (might not exist): ${err}"
+                }
+            }
+        }
+        success {
+            echo 'User Management Service pipeline completed successfully!'
+        }
+        failure {
+            echo 'User Management Service pipeline failed. Check logs for details.'
+            // Add notification steps here (e.g., sending an email, Slack message)
+            // mail to: 'your-email@example.com', subject: "Jenkins Build Failed: ${env.JOB_NAME}", body: "Build ${env.BUILD_NUMBER} failed."
+        }
+        unstable {
+            echo 'User Management Service pipeline is unstable (e.g., some tests failed).'
+        }
+    }
+}

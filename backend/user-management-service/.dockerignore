@@ -1,0 +1,12 @@
+node_modules/
+# The 'dist' directory is generated during the build stage and copied over.
+# It should not be copied from the source directory.
+dist/
+
+.git/
+.gitignore
+Dockerfile
+Jenkinsfile
+npm-debug.log
+# Keep .env if you are explicitly copying it as per the Dockerfile,
+# but remember security implications for production.
