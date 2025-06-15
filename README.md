@@ -1,1 +1,1 @@
-# School-Management-System
+# School Management System: Web & Mobile App Architecture (React/React Native/Java/Node.js)
