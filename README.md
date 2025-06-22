@@ -3,7 +3,8 @@
 
 Given the microservices architecture for your school management system, a well-defined folder structure is crucial for organization, maintainability, and collaboration. This document outlines a recommended folder architecture, starting with a high-level monorepo approach and then detailing the structure for individual microservices using Node.js and Java.
 
-```/School-Management-system
+```
+/School-Management-system
 ├── /school-management-backend          # All backend services (Microservices architecture)
 │   ├── /services/
 │   │   ├── /spring-boot-services/
