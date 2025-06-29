@@ -1,0 +1,35 @@
+server:
+  port: 8080 # Internal port of the service inside the container
+
+spring:
+  datasource:
+    # These values will be overridden by environment variables from docker-compose.yml
+    # This is standard practice in containerized environments.
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update} # 'update' for dev, 'none' or 'validate' for production
+    show-sql: ${SPRING_JPA_SHOW_SQL:true} # Show SQL statements in logs
+    properties:
+      hibernate:
+        format_sql: ${SPRING_JPA_FORMAT_SQL:true} # Format SQL for readability
+  web:
+    cors:
+      # These values will be overridden by environment variables from docker-compose.yml
+      allowed-origins: ${SPRING_WEB_CORS_ALLOWED_ORIGINS}
+      allowed-methods: ${SPRING_WEB_CORS_ALLOWED_METHODS}
+      allowed-headers: ${SPRING_WEB_CORS_ALLOWED_HEADERS}
+      allow-credentials: ${SPRING_WEB_CORS_ALLOW_CREDENTIALS}
+      max-age: ${SPRING_WEB_CORS_MAX_AGE}
+
+# SpringDoc OpenAPI configuration (optional, can be omitted if default is fine)
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html # Or /swagger-ui/index.html
+    tags-sorter: alpha
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs # OpenAPI JSON endpoint
