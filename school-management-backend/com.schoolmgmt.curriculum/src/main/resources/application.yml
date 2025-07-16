@@ -1,0 +1,28 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: course-curriculum-service
+  datasource:
+    # JDBC URL for your PostgreSQL database
+    # Replace 'localhost' with your PostgreSQL host, '5432' with port, and 'curriculumdb' with your database name
+    url: jdbc:postgresql://localhost:5432/curriculumdb
+    username: your_postgres_user # Replace with your PostgreSQL username
+    password: your_postgres_password # Replace with your PostgreSQL password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect # Specify PostgreSQL dialect
+    hibernate:
+      ddl-auto: update # Creates/updates schema automatically. Use 'create', 'create-drop', 'update', or 'none'.
+      # For production, consider 'none' and use Flyway/Liquibase for schema migrations.
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true # Format SQL for readability in logs
+
+# Remove H2 console settings if not using H2 anymore
+# h2:
+#   console:
+#     enabled: true
+#     path: /h2-console
